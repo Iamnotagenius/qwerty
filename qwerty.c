@@ -106,6 +106,14 @@ static inline void init_qwerty_map(uint32_t buffer[26]) {
 }
 #endif
 
+static inline uint32_t to_index(uint8_t c) {
+    return toupper(c) - 'A';
+}
+
+bool is_adjacent(uint32_t *graph, uint8_t char1, uint8_t char2) {
+    return graph[to_index(char1)] & (1 << to_index(char2));
+}
+
 static const char *USAGE_MSG = "This program counts english words that can be typed using only adjacent keys.\n"
                                "Usage: %s FILE\n"
                                "where FILE is path to a dictionary with each word in a separate line\n"
@@ -126,18 +134,37 @@ int main(int argc, char *argv[]) {
     } 
     size_t size = 3;
     char buffer[size];
-    size_t read, count = 0, column = 0, line = 0;
+#ifdef COMPILE_TIME_MAP
+    const uint32_t *adjacency_map = QWERTY_MAP;
+#else
+    uint32_t adjacency_map[26];
+    init_qwerty_map(adjacency_map);
+#endif
+
+    size_t read, count = 0, column = 0, line = 1;
+    int32_t prev = -1;
     bool should_count = true;
     while (!feof(dictionary)) {
         read = fread(buffer, sizeof(char), sizeof(buffer) - 1, dictionary);
         buffer[read] = '\0';
-        printf("'%s' read (%ld bytes)\n", buffer, read);
+        /* printf("'%s' read (%ld bytes)\n", buffer, read); */
         for (size_t i = 0; i < read; i++) {
+            column++;
             if (buffer[i] == '\n') {
                 count += should_count;
                 column = 0;
                 line++;
+                prev = -1;
                 should_count = true;
+                continue;
+            }
+            if (!isalpha(buffer[i])) {
+                fprintf(stderr, "Invalid char '%c' on line %lu at pos %ld\n", buffer[i], line, column);
+                should_count = false;
+                continue;
+            }
+            if (prev == -1) {
+                prev = buffer[i];
                 continue;
             }
         }
