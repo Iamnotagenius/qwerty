@@ -1,7 +1,11 @@
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdbool.h>
 
-#define COMPILE_TIME_MAP
+/* #define COMPILE_TIME_MAP */
 
 #ifdef COMPILE_TIME_MAP
 /* thanks, vim. (:set nrformats+=alpha) */
@@ -72,20 +76,70 @@ static inline uint32_t letters_to_mask(const char *set) {
     return mask;
 }
 static inline void init_qwerty_map(uint32_t buffer[26]) {
-    buffer[0] = letters_to_mask("AQZS");
+    buffer[0] = letters_to_mask("AWQZS");
+    buffer[1] = letters_to_mask("BGHVN");
+    buffer[2] = letters_to_mask("CDFXV");
+    buffer[3] = letters_to_mask("DERSFXC");
+    buffer[4] = letters_to_mask("EWRSD");
+    buffer[5] = letters_to_mask("FRTDGCV");
+    buffer[6] = letters_to_mask("GTYFHVB");
+    buffer[7] = letters_to_mask("HYUGJBN");
+    buffer[8] = letters_to_mask("IUOJK");
+    buffer[9] = letters_to_mask("JUIHKNM");
+    buffer[10] = letters_to_mask("KIOJLM");
+    buffer[11] = letters_to_mask("LOPK");
+    buffer[12] = letters_to_mask("MJKN");
+    buffer[13] = letters_to_mask("NHJBM");
+    buffer[14] = letters_to_mask("OIPKL");
+    buffer[15] = letters_to_mask("POL");
+    buffer[16] = letters_to_mask("QWA");
+    buffer[17] = letters_to_mask("RETDF");
+    buffer[18] = letters_to_mask("SWEADZX");
+    buffer[19] = letters_to_mask("TRYFG");
+    buffer[20] = letters_to_mask("UYIHJ");
+    buffer[21] = letters_to_mask("VFGCB");
+    buffer[22] = letters_to_mask("WQEAS");
+    buffer[23] = letters_to_mask("XSDZC");
+    buffer[24] = letters_to_mask("YTUGH");
+    buffer[25] = letters_to_mask("ZASX");
+
 }
 #endif
 
+static const char *USAGE_MSG = "This program counts english words that can be typed using only adjacent keys.\n"
+                               "Usage: %s FILE\n"
+                               "where FILE is path to a dictionary with each word in a separate line\n"
+                               "- stands for stdin\n";
+
 int main(int argc, char *argv[]) {
-#ifndef COMPILE_TIME_MAP
-    uint32_t map[26];
-    init_qwerty_map(map);
-#endif
-    uint32_t mask = 
-#ifdef COMPILE_TIME_MAP
-        QWERTY_MAP[0];
-#else
-    map[0];
-#endif
-    printf("%08X\n", mask);
+    if (argc != 2) {
+        fprintf(stderr, USAGE_MSG, argv[0]);
+        return 1;
+    }
+    if (strcmp("-h", argv[1]) == 0 || strcmp("--help", argv[1]) == 0 || strcmp("-?", argv[1]) == 0) {
+        fprintf(stderr, USAGE_MSG, argv[0]);
+        return 0;
+    }
+    FILE *dictionary = stdin;
+    if (strcmp("-", argv[1]) != 0) {
+        dictionary = fopen(argv[1], "r");
+    } 
+    size_t size = 3;
+    char buffer[size];
+    size_t read, count = 0, column = 0, line = 0;
+    bool should_count = true;
+    while (!feof(dictionary)) {
+        read = fread(buffer, sizeof(char), sizeof(buffer) - 1, dictionary);
+        buffer[read] = '\0';
+        printf("'%s' read (%ld bytes)\n", buffer, read);
+        for (size_t i = 0; i < read; i++) {
+            if (buffer[i] == '\n') {
+                count += should_count;
+                column = 0;
+                line++;
+                should_count = true;
+                continue;
+            }
+        }
+    }
 }
