@@ -5,7 +5,8 @@
 #include <ctype.h>
 #include <stdbool.h>
 
-/* #define COMPILE_TIME_MAP */
+#define COMPILE_TIME_MAP
+#define READ_BUFFER_SIZE 4096
 
 #ifdef COMPILE_TIME_MAP
 /* thanks, vim. (:set nrformats+=alpha) */
@@ -110,7 +111,7 @@ static inline uint32_t to_index(uint8_t c) {
     return toupper(c) - 'A';
 }
 
-bool is_adjacent(uint32_t *graph, uint8_t char1, uint8_t char2) {
+static inline bool is_adjacent(const uint32_t *graph, uint8_t char1, uint8_t char2) {
     return graph[to_index(char1)] & (1 << to_index(char2));
 }
 
@@ -120,6 +121,8 @@ static const char *USAGE_MSG = "This program counts english words that can be ty
                                "- stands for stdin\n";
 
 int main(int argc, char *argv[]) {
+    /* TODO: add -q (quiet option, not print invalid chars)
+     * and -v option (print every non-adjacent occurence) */
     if (argc != 2) {
         fprintf(stderr, USAGE_MSG, argv[0]);
         return 1;
@@ -131,9 +134,8 @@ int main(int argc, char *argv[]) {
     FILE *dictionary = stdin;
     if (strcmp("-", argv[1]) != 0) {
         dictionary = fopen(argv[1], "r");
-    } 
-    size_t size = 3;
-    char buffer[size];
+    }
+    char buffer[READ_BUFFER_SIZE];
 #ifdef COMPILE_TIME_MAP
     const uint32_t *adjacency_map = QWERTY_MAP;
 #else
@@ -145,13 +147,19 @@ int main(int argc, char *argv[]) {
     int32_t prev = -1;
     bool should_count = true;
     while (!feof(dictionary)) {
-        read = fread(buffer, sizeof(char), sizeof(buffer) - 1, dictionary);
-        buffer[read] = '\0';
+        read = fread(buffer, sizeof(char), sizeof(buffer), dictionary);
+        /* buffer[read] = '\0'; */
         /* printf("'%s' read (%ld bytes)\n", buffer, read); */
         for (size_t i = 0; i < read; i++) {
             column++;
             if (buffer[i] == '\n') {
                 count += should_count;
+                if (should_count) {
+                    fprintf(stderr, "Word on line %lu can be typed\n", line);
+                }
+                else {
+                    fprintf(stderr, "Word on line %lu can't be typed\n", line);
+                }
                 column = 0;
                 line++;
                 prev = -1;
@@ -163,10 +171,13 @@ int main(int argc, char *argv[]) {
                 should_count = false;
                 continue;
             }
-            if (prev == -1) {
-                prev = buffer[i];
-                continue;
+            if (prev != -1 && !is_adjacent(adjacency_map, prev, buffer[i])) {
+                fprintf(stderr, "%c is not adjacent to %c\n", prev, buffer[i]);
+                should_count = false;
             }
+            prev = buffer[i];
         }
     }
+
+    printf("%lu\n", count);
 }
