@@ -23,7 +23,11 @@ static const char *USAGE_MSG = "This program counts english words that can be ty
                                "  -i     -- ignore non-letters\n"
                                "  -s SEP -- expect SEP character to be as a separator\n"
                                "  -0     -- expect NUL character to be as a separator\n"
-                               "  -e     -- count empty words (a word is considered empty when it does not have any english letter)\n";
+                               "  -e     -- count empty words (a word is considered empty when it does not have any english letter)\n"
+#ifdef COMPILE_TIME_MAP
+                               "This executable is built with COMPILE_TIME_MAP defined\n"
+#endif
+                               ;
 
 typedef enum {
     QUIET, NORMAL, VERBOSE
