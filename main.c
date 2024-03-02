@@ -67,12 +67,13 @@ int main(int argc, char *argv[]) {
         }
     }
     char buffer[READ_BUFFER_SIZE];
+    buffer[0] = '\0';
 #ifndef COMPILE_TIME_MAP
     uint32_t adjacency_map[26];
     init_qwerty_map(adjacency_map);
 #endif
 
-    size_t read, count = 0, column = 0, line = 1;
+    size_t read = 1, count = 0, column = 0, line = 1;
     int32_t prev = -1;
     bool should_count = true, is_empty = true;
     setlocale(LC_CTYPE, "C"); /* ensure isalpha returns true only for english letters */
