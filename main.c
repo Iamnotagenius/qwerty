@@ -61,6 +61,10 @@ int main(int argc, char *argv[]) {
     FILE *dictionary = stdin;
     if (strcmp("-", argv[optind]) != 0) {
         dictionary = fopen(argv[optind], "r");
+        if (dictionary == NULL) {
+            perror(argv[0]);
+            return EXIT_FAILURE;
+        }
     }
     char buffer[READ_BUFFER_SIZE];
 #ifndef COMPILE_TIME_MAP
