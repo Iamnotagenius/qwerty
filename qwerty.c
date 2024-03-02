@@ -1,17 +1,10 @@
+#ifndef COMPILE_TIME_MAP
 #include <stdint.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include <unistd.h>
 
 #include "qwerty.h"
 
-/* #define COMPILE_TIME_MAP */
-
-/* Since english alphabet is only 26 characters long,
- * I can build an adjacency matrix using uint32_t as entire rows
- * and store the edges as single bits */
-
-#ifndef COMPILE_TIME_MAP
 static inline uint32_t letters_to_mask(const char *set) {
     uint32_t mask = 0;
     const char *cur = set;
@@ -50,7 +43,6 @@ void init_qwerty_map(uint32_t buffer[26]) {
     buffer[25] = letters_to_mask("ZASX");
 
 }
-#endif
 
 static inline uint32_t to_index(uint8_t c) {
     return toupper(c) - 'A';
@@ -59,4 +51,4 @@ static inline uint32_t to_index(uint8_t c) {
 bool is_adjacent(const uint32_t *graph, uint8_t char1, uint8_t char2) {
     return graph[to_index(char1)] & (1 << to_index(char2));
 }
-
+#endif
