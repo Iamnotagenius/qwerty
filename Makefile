@@ -1,14 +1,19 @@
-SRC=main.c qwerty.c
+CARGS=-Wall -O2
+SRC=main.c
+ifdef COMPILE_TIME_MAP
+	CARGS+=-DCOMPILE_TIME_MAP
+else
+	SRC+=qwerty.c
+endif
 OBJS=$(SRC:.c=.o)
-WITH_COMPILE_TIME_MAP=-DCOMPILE_TIME_MAP
 
 .PHONY: all
 
 all: a.out
 
-a.out: ${OBJS}
-	${CC} $^ -o $@
+a.out: $(OBJS)
+	$(CC) $^ -o $@ $(CARGS)
 
 %.o: %.c
-	${CC} -c $< -o $@ ${WITH_COMPILE_TIME_MAP}
+	$(CC) -c $< -o $@ $(CARGS)
 

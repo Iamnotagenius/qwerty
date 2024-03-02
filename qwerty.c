@@ -1,4 +1,3 @@
-#ifndef COMPILE_TIME_MAP
 #include <stdint.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -51,4 +50,3 @@ static inline uint32_t to_index(uint8_t c) {
 bool is_adjacent(const uint32_t *graph, uint8_t char1, uint8_t char2) {
     return graph[to_index(char1)] & (1 << to_index(char2));
 }
-#endif

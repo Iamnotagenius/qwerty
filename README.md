@@ -4,6 +4,10 @@ To build it, simply:
 ```bash
 make
 ```
+Or, if you want to build it with `COMPILE_TIME_MAP` defined:
+```bash
+make COMPILE_TIME_MAP=1
+```
 
 ## Usage
 ```bash
